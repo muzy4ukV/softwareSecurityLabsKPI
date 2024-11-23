@@ -141,7 +141,7 @@
             </div>
             <form id="login-form" action="/api/login" method="post">
                 <input type="text" name="login" id="username-field" class="form-field" placeholder="Username">
-                <input type="password" name="password" id="password-field" class="form-field" placeholder="Password">
+                <input type="password" name="password" class="form-field" placeholder="Password">
                 <input type="submit" value="Login" id="form-submit">
             </form>
         </div>
@@ -153,7 +153,7 @@
             </div>
             <form id="register-form" action="/api/register" method="post">
                 <input type="text" name="email" id="email-field" class="form-field" placeholder="Email">
-                <input type="password" name="password" id="password-field" class="form-field" placeholder="Password">
+                <input type="password" name="password" class="form-field" placeholder="Password">
                 <input type="submit" value="Register" id="form-submit-register">
             </form>
         </div>
@@ -200,7 +200,7 @@
 
     const loginForm = document.getElementById("login-form");
     const loginButton = document.getElementById("form-submit");
-    const loginErrorMsg = document.getElementById("login-error-msg");
+    const loginErrorMsg = document.getElementById("login-error-msg-holder");
     const logoutLink =  document.getElementById("logout");
 
     logoutLink.addEventListener("click", (e) => {
@@ -226,14 +226,16 @@
             const { username } =  response.data;
             sessionStorage.setItem('session', JSON.stringify(response.data));
             location.reload();
-        }).catch((response) => {
+        }).catch((error) => {
+        if (error.response && error.response.status === 403) {
             loginErrorMsg.style.display = 'block';
-        });
+        }
+    });
     })
 
     const registerForm = document.getElementById("register-form");
     const registerButton = document.getElementById("form-submit-register");
-    const registerMsg = document.getElementById("register-msg");
+    const registerMsg = document.getElementById("register-msg-holder");
 
     registerButton.addEventListener("click", (e) => {
         e.preventDefault();

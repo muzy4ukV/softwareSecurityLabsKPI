@@ -1,33 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login</title>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    </head>
-
-    <body>
-        <main id="main-holder">
-            <a href="/logout" id="logout">Logout</a>
-
-            <h1 id="login-header">Login</h1>
-
-            <div id="login-error-msg-holder">
-                <p id="login-error-msg">Invalid username <span id="error-msg-second-line">and/or password</span></p>
-            </div>
-
-            <form id="login-form" action="/api/login" method="post">
-                <input type="text" name="login" id="username-field" class="login-form-field" placeholder="Username">
-                <input type="password" name="password" id="password-field" class="login-form-field" placeholder="Password">
-                <input type="submit" value="Login" id="login-form-submit">
-            </form>
-
-        </main>
-    </body>
-
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Registration</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <style>
         html {
             height: 100%;
@@ -37,148 +15,274 @@
             height: 100%;
             margin: 0;
             font-family: Arial, Helvetica, sans-serif;
-            display: grid;
-            justify-items: center;
+            display: flex;
+            justify-content: center;
             align-items: center;
             background-color: #3a3a3a;
         }
 
-        #logout {
-            opacity: 0;
-        }
-
         #main-holder {
-            width: 50%;
-            height: 70%;
-            display: grid;
-            justify-items: center;
-            align-items: center;
+            width: 90%;
+            max-width: 500px;
             background-color: white;
             border-radius: 7px;
             box-shadow: 0px 0px 5px 2px black;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        #login-error-msg-holder {
-            width: 100%;
-            height: 100%;
-            display: grid;
-            justify-items: center;
-            align-items: center;
+        h1,
+        h2 {
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        #login-error-msg-holder,
+        #register-msg-holder {
+            display: none;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        #login-error-msg,
+        #register-msg {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 0;
         }
 
         #login-error-msg {
-            width: 23%;
-            text-align: center;
-            margin: 0;
-            padding: 5px;
-            font-size: 12px;
-            font-weight: bold;
             color: #8a0000;
-            border: 1px solid #8a0000;
-            background-color: #e58f8f;
-            opacity: 0;
+            background-color: #f8d7da;
+            border: 1px solid #f5c2c7;
         }
 
-        #error-msg-second-line {
-            display: block;
+        #register-msg {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
         }
 
-        #login-form {
-            align-self: flex-start;
-            display: grid;
-            justify-items: center;
-            align-items: center;
+        .form-container {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
         }
 
-        .login-form-field::placeholder {
-            color: #3a3a3a;
-        }
-
-        .login-form-field {
-            border: none;
-            border-bottom: 1px solid #3a3a3a;
-            margin-bottom: 10px;
+        .form-field {
+            width: calc(100% - 10px);
+            margin-bottom: 15px;
+            padding: 8px 5px;
+            border: 1px solid #ddd;
             border-radius: 3px;
-            outline: none;
-            padding: 0px 0px 5px 5px;
         }
 
-        #login-form-submit {
+        .form-field::placeholder {
+            color: #666;
+        }
+
+        #form-submit,
+        #form-submit-register {
             width: 100%;
-            padding: 7px;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             color: white;
             font-weight: bold;
             background-color: #3a3a3a;
             cursor: pointer;
-            outline: none;
         }
+
+        #form-submit:hover,
+        #form-submit-register:hover {
+            background-color: #555;
+        }
+
+        #logout, #requestButton {
+            display: none;
+            margin-top: 10px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #3a3a3a;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #logout:hover, #requestButton:hover {
+            background-color: #5a5a5a;
+        }
+
+        #greeting {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #3a3a3a;
+            text-align: center;
+        }
+
     </style>
+</head>
 
-    <script>
-        const session = sessionStorage.getItem('session');
+<body>
+    <main id="main-holder">
+        <a href="/logout" id="logout" style="display: none;">Logout</a>
 
-        let token;
+        <div class="form-container" id="login-container">
+            <h1 id="login-header">Login User</h1>
+            <div id="login-error-msg-holder">
+                <p id="login-error-msg">Invalid username and/or password</p>
+            </div>
+            <form id="login-form" action="/api/login" method="post">
+                <input type="text" name="login" id="username-field" class="form-field" placeholder="Username">
+                <input type="password" name="password" class="form-field" placeholder="Password">
+                <input type="submit" value="Login" id="form-submit">
+            </form>
+        </div>
 
-        try {
-            token = JSON.parse(session).token;
-        } catch(e) {}
+        <div class="form-container" id="register-container">
+            <h2 id="register-header">Register User</h2>
+            <div id="register-msg-holder">
+                <p id="register-msg"></p>
+            </div>
+            <form id="register-form" action="/api/register" method="post">
+                <input type="text" name="email" id="email-field" class="form-field" placeholder="Email">
+                <input type="password" name="password" class="form-field" placeholder="Password">
+                <input type="submit" value="Register" id="form-submit-register">
+            </form>
+        </div>
+    </main>
+</body>
 
-        if (token) {
-            axios.get('/', {
-                headers: {
-                    Authorization: token
-                }
-            }).then((response) => {
-                const { username } = response.data;
+<script>
+    const session = sessionStorage.getItem('session');
 
-                if (username) {
-                    const mainHolder = document.getElementById("main-holder");
-                    const loginHeader = document.getElementById("login-header");
+    let token;
 
-                    loginForm.remove();
-                    loginErrorMsg.remove();
-                    loginHeader.remove();
+    try {
+        token = JSON.parse(session).token;
+    } catch(e) {}
 
-                    mainHolder.append(`Hello ${username}`);
-                    logoutLink.style.opacity = 1;
-                }
-            });
-        }
+    if (token) {
+        axios.get('/', {
+            headers: {
+                Authorization: token
+            }
+        }).then((response) => {
+            const { username } = response.data;
 
+            if (username) {
+                const mainHolder = document.getElementById("main-holder");
 
-        const loginForm = document.getElementById("login-form");
-        const loginButton = document.getElementById("login-form-submit");
-        const loginErrorMsg = document.getElementById("login-error-msg");
-        const logoutLink =  document.getElementById("logout");
+                const formsContainers = document.getElementsByClassName("form-container");
+                Array.from(formsContainers).forEach(element => {
+                    element.remove();
+                });
 
-        logoutLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            sessionStorage.removeItem('session');
-            location.reload();
+                // Додаємо текст привітання
+                const greeting = document.createElement("p");
+                greeting.textContent = `Hello, ${username}!`;
+                greeting.id = "greeting";
+                mainHolder.prepend(greeting); // Додаємо текст на початок main-holder
+
+                // Додаємо кнопку для запиту
+                const requestButton = document.createElement("button");
+                requestButton.textContent = "Send private GET Request";
+                requestButton.id = "requestButton";
+                mainHolder.appendChild(requestButton); // Додаємо кнопку в main-holder
+
+                document.getElementById('requestButton').addEventListener('click', function() {
+                    const token = sessionStorage.getItem('session'); // Отримуємо токен зі sessionStorage
+
+                    const jwtToken = JSON.parse(token);
+                    let access_token = jwtToken.token;
+                    axios.get('/private', {
+                        headers: {
+                            Authorization: "Bearer " + access_token // Передаємо токен у заголовку
+                        }
+                    })
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error.response ? error.response.data : error.message);
+                    });
+                });
+
+                // Робимо лінку "Logout" видимою
+                logoutLink.style.display = 'block';
+                requestButton.style.display = 'block'
+            }
         });
-
-        loginButton.addEventListener("click", (e) => {
-            e.preventDefault();
-            const login = loginForm.login.value;
-            const password = loginForm.password.value;
+    }
 
 
-            axios({
-                method: 'post',
-                url: '/api/login',
-                data: {
-                    login,
-                    password
-                }
-            }).then((response) => {
-                const { username } =  response.data;
-                sessionStorage.setItem('session', JSON.stringify(response.data));
-                location.reload();
-            }).catch((response) => {
-                loginErrorMsg.style.opacity = 1;
-            });
-        })
-    </script>
+    const loginForm = document.getElementById("login-form");
+    const loginButton = document.getElementById("form-submit");
+    const loginErrorMsg = document.getElementById("login-error-msg-holder");
+    const logoutLink =  document.getElementById("logout");
+
+    logoutLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        sessionStorage.removeItem('session');
+        location.reload();
+    });
+
+    loginButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        const login = loginForm.login.value;
+        const password = loginForm.password.value;
+
+
+        axios({
+            method: 'post',
+            url: '/api/login',
+            data: {
+                login,
+                password
+            }
+        }).then((response) => {
+            const { username } =  response.data;
+            sessionStorage.setItem('session', JSON.stringify(response.data));
+            location.reload();
+        }).catch((error) => {
+        if (error.response && error.response.status === 403) {
+            loginErrorMsg.style.display = 'block';
+        }
+    });
+    })
+
+    const registerForm = document.getElementById("register-form");
+    const registerButton = document.getElementById("form-submit-register");
+    const registerMsg = document.getElementById("register-msg-holder");
+
+    registerButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        const email = registerForm.email.value;
+        const password = registerForm.password.value;
+
+        axios({
+            method: 'post',
+            url: '/api/register',
+            data: {
+                email,
+                password
+            }
+        }).then((response) => {
+            registerMsg.innerHTML = `User ${email} was registered succesfully`;
+            registerMsg.style.display = 'block';
+            registerForm.reset();
+        }).catch((error) => {
+            console.error('Registration failed:', error);
+            alert('Registration failed. Please try again.');
+        });
+    });
+</script>
+
 </html>

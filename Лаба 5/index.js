@@ -14,12 +14,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const SESSION_KEY = 'Authorization';
-const domain = 'dev-x5y5pre5iu10gohp.us.auth0.com';
+
+const domain = "dev-nkezavm36o8pdhba.us.auth0.com"
 
 const checkJwt = auth({
     audience: `https://${domain}/api/v2/`,
     issuerBaseURL: `https://${domain}`,
-  });
+});
 
 class Session {
     #sessions = {}
@@ -67,6 +68,7 @@ class Session {
 
 const sessions = new Session();
 
+
 app.use((req, res, next) => {
     let currentSession = {};
     let sessionId = req.get(SESSION_KEY);
@@ -104,7 +106,7 @@ app.get('/', (req, res) => {
 
     const options = { 
         method: "GET",
-        uri: 'https://dev-x5y5pre5iu10gohp.us.auth0.com/userinfo',
+        uri: `https://${domain}/userinfo`,
         headers: { "Authorization": "Bearer " + auth }
       };
       
@@ -113,11 +115,11 @@ app.get('/', (req, res) => {
                   var body_res = JSON.parse(body);
                   return res.json({
                       username: body_res.nickname,
-                      logout: 'http://localhost:3000/logout'
+                      logout: `http://localhost:${port}/logout`
                   });
               }
               else{
-                  res.status(401).send();
+                  res.status(401).send(body);
               }
       });
 })
@@ -127,15 +129,16 @@ app.get('/logout', checkJwt, (req, res) => {
     res.redirect('/');
 });
 
+let details = {
+    audience: `https://${domain}/api/v2/`,
+    grant_type: 'client_credentials',
+    client_id: 'cAY5VTOGPxBlTJPgLyDCMWl9jaDR50BP',
+    client_secret: '2yPUof4FFvOhmf5-olsyzj_pZ3w_ZcqC5hiy2sTnCgnRQhDgEAynD3OTpOg9y534'
+};
+
 app.post('/api/login', (req, res) => {
     const { login, password } = req.body;
 
-    let details = {
-		audience: `https://${domain}/api/v2/`,
-		grant_type: 'client_credentials',
-		client_id: 'EO06XRRIezpjy5foORAjTvVPnaWXcr6t',
-		client_secret: 'Y3wXSLpYgx1U1zZsQBvXnaiVYiMBNaHgRti_R4z0wEDtLnvneifL93dZFRfmD8ZO'
-	};
 	
 	let options = {
         uri:  `https://${domain}/oauth/token`,
@@ -151,16 +154,16 @@ app.post('/api/login', (req, res) => {
 			res.status(401).send();
 		}
 		if (!error && response.statusCode == 200) {
-		
+            const parsedBody = JSON.parse(body);
 		    let user_details = {
 				grant_type: 'http://auth0.com/oauth/grant-type/password-realm',
 				username: login,
 				password: password,
-				audience: details.audience,
+				audience:  `https://${domain}/userinfo`,
 				client_id: details.client_id,
 				client_secret: details.client_secret,
 				realm: 'Username-Password-Authentication',
-				scope: 'offline_access openid'
+				scope: 'offline_access'
 			};
 	
 			let user_options = {
@@ -169,7 +172,7 @@ app.post('/api/login', (req, res) => {
 				method: 'POST',
 				headers: {
 							'Content-Type': 'application/json',
-							'Authorization' : 'Bearer ' + body.access_token
+							'Authorization' : 'Bearer ' + parsedBody.access_token
 						}
 			};
 	
@@ -179,7 +182,7 @@ app.post('/api/login', (req, res) => {
 				}
 
                 if(response.statusCode == 403){
-                    res.status(403).send();
+                    return res.status(403).send(body);
                 }
 		
 				if (!error && response.statusCode == 200) {
@@ -190,6 +193,57 @@ app.post('/api/login', (req, res) => {
 			});
 		}	
 	});
+});
+
+
+app.post('/api/register', (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const managementOptions = {
+        method: 'POST',
+        uri: `https://${domain}/oauth/token`,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            client_id: details.client_id,
+            client_secret: details.client_secret,
+            audience: `https://${domain}/api/v2/`,
+            grant_type: 'client_credentials',
+        }),
+    };
+
+    request(managementOptions, (err, response, body) => {
+        if (err || response.statusCode !== 200) {
+            return res.status(500).json({ error: 'Failed to get Management API token' });
+        }
+
+        const accessToken = JSON.parse(body).access_token;
+
+        const createUserOptions = {
+            method: 'POST',
+            uri: `https://${domain}/api/v2/users`,
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                password,
+                connection: 'Username-Password-Authentication',
+            }),
+        };
+
+        request(createUserOptions, (err, response, body) => {
+            if (err || response.statusCode >= 400) {
+                return res.status(400).json({ error: 'Failed to register user', details: body });
+            }
+
+            res.status(201).json({ message: 'User registered successfully!' });
+        });
+    });
 });
 
 app.get('/private', checkJwt, (req, res) =>{
