@@ -1,0 +1,24 @@
+{
+  "name": "auth_examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "basic_auth": "nodemon ./basic_auth/index.js",
+    "forms_auth": "nodemon ./forms_auth/index.js",
+    "token_auth": "nodemon ./token_auth/index.js",
+    "jwt_auth": "nodemon ./jwt_auth/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.7",
+    "uuid": "^10.0.0"
+  }
+}
